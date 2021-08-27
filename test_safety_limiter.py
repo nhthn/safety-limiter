@@ -1,4 +1,7 @@
+import subprocess
+
 import numpy as np
+import soundfile
 import pytest
 
 from safety_limiter import apply_limiter, measure_thd
@@ -88,3 +91,20 @@ class TestLimiter:
             - measure_thd(signal, sample_rate, frequency, partials)
         )
         assert thd < 0.1
+
+    def test_python_matches_c(self):
+        """An amplified signal put through both C and Python limiters returns identical
+        results."""
+        sample_rate = 48000.0
+        frequency = 440
+        signal = sine_wave(frequency, sample_rate=sample_rate)
+        signal *= np.linspace(0, 1, len(signal)) * 8
+
+        python_out = apply_limiter(signal, sample_rate=sample_rate)["out"]
+
+        soundfile.write("in.wav", signal, int(sample_rate))
+        subprocess.run(["./safety_limiter", "in.wav", "out.wav"], check=True)
+        c_out, sample_rate_2 = soundfile.read("out.wav")
+        assert sample_rate == sample_rate_2
+
+        np.testing.assert_allclose(python_out, c_out)

@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
 
     SF_INFO sfInfo2;
     sfInfo2.samplerate = sampleRate;
-    sfInfo2.channels = 2;
+    sfInfo2.channels = channels;
     sfInfo2.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
-    sfInfo2.sections = 0;
+    sfInfo2.sections = 1;
     sfInfo2.seekable = 0;
     auto soundFile2 = sf_open(outFileName, SFM_WRITE, &sfInfo2);
     if (soundFile2 == nullptr) {

@@ -8,7 +8,7 @@ This is a project to design an audio limiter with the following properties:
 - Nearly colorless, with low THD on sine tones.
 - Auto-mutes on NaNs, infinities, and very large inputs to protect your ears and speakers.
 - DC removal prior to limiting (optional).
-- Header-only C++11 in a single file.
+- Header-only C++14 in a single file, `safety_limiter.hpp`.
 - Public domain.
 
 The following are the responsibility of the user:

@@ -3,7 +3,7 @@ import scipy.signal
 
 NEGATIVE_60_DBFS = 0.001
 
-def apply_limiter(signal, sample_rate, release_time, hold_time):
+def apply_limiter(signal, sample_rate, release_time=0.1, hold_time=0.1):
     last_amplitude = 0
     amplitude = np.zeros(len(signal))
     out = np.zeros(len(signal))
@@ -74,26 +74,22 @@ def measure_thd(signal, sample_rate, f0, partials):
 
     return np.mean(thd)
 
-
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
+    import argparse
+    import soundfile
 
-    sample_rate = 48000
-    duration = 1
-    t = np.arange(0, int(duration * sample_rate)) / sample_rate
-    signal = np.sin(t * 2 * np.pi * 440) * 8
+    parser = argparse.ArgumentParser()
+    parser.add_argument("infile", type=str)
+    parser.add_argument("outfile", type=str)
+    parser.add_argument("-a", "--amplify", type=float, default=1)
+    args = parser.parse_args()
 
-    limited_signal = apply_limiter(
-        signal,
-        sample_rate=sample_rate,
-        hold_time=0.5,
-        release_time=0.01,
-    )
+    audio, sample_rate = soundfile.read(args.infile)
+    channels = audio.shape[1]
+    signals = []
+    for i in range(channels):
+        signal = audio[:, i] * 10 ** (args.amplify / 20)
+        signal = apply_limiter(signal, sample_rate)["out"]
+        signals.append(signal)
 
-    print(measure_thd(signal, sample_rate, 440, 7))
-    print(measure_thd(limited_signal["out"], sample_rate, 440, 7))
-
-    plt.plot(t, signal)
-    plt.plot(t, limited_signal["out"])
-    plt.plot(t, limited_signal["amplitude"])
-    plt.show()
+    soundfile.write(args.outfile, np.vstack(signals).T, sample_rate)

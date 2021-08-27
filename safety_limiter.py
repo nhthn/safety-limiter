@@ -3,6 +3,15 @@ import scipy.signal
 
 NEGATIVE_60_DBFS = 0.001
 
+EPSILON = np.finfo(float).tiny
+
+def sanitize(x):
+    if np.isnan(x) or not np.isfinite(x):
+        return 0
+    if abs(x) < EPSILON:
+        return 0
+    return x
+
 def apply_limiter(signal, sample_rate, release_time=0.1, hold_time=0.1):
     last_amplitude = 0
     amplitude = np.zeros(len(signal))
@@ -11,7 +20,7 @@ def apply_limiter(signal, sample_rate, release_time=0.1, hold_time=0.1):
     hold_timer = 0
     k_release = NEGATIVE_60_DBFS ** (1 / (release_time * sample_rate))
     for i in range(len(signal)):
-        signal_instantaneous_amplitude = abs(signal[i])
+        signal_instantaneous_amplitude = abs(sanitize(signal[i]))
         if hold_timer > 0:
             amplitude_from_follower = last_amplitude
             hold_timer -= 1
@@ -26,7 +35,7 @@ def apply_limiter(signal, sample_rate, release_time=0.1, hold_time=0.1):
             current_amplitude = signal_instantaneous_amplitude
             hold_timer = int(sample_rate * hold_time)
         amplitude[i] = current_amplitude
-        last_amplitude = current_amplitude
+        last_amplitude = sanitize(current_amplitude)
 
         if current_amplitude > 1.0:
             gain[i] = 1 / current_amplitude

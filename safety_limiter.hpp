@@ -1,5 +1,21 @@
 #pragma once
 #include <cmath>
+#include <limits>
+
+namespace safety_limiter {
+
+float sanitize(float x) {
+    if (std::isinf(x)) {
+        return 0;
+    }
+    if (std::isnan(x)) {
+        return 0;
+    }
+    if (std::abs(x) < std::numeric_limits<float>::min()) {
+        return 0;
+    }
+    return x;
+}
 
 class SafetyLimiter {
 public:
@@ -41,7 +57,7 @@ void SafetyLimiter::setHoldTime(float holdTime)
 
 float SafetyLimiter::process(float in)
 {
-    float signalInstantaneousAmplitude = std::abs(in);
+    float signalInstantaneousAmplitude = std::abs(sanitize(in));
     float amplitudeFromFollower;
     if (m_holdTimer > 0) {
         amplitudeFromFollower = m_lastAmplitude;
@@ -59,8 +75,10 @@ float SafetyLimiter::process(float in)
         amplitude = signalInstantaneousAmplitude;
         m_holdTimer = m_holdTime;
     }
-    m_lastAmplitude = amplitude;
+    m_lastAmplitude = sanitize(amplitude);
 
     float gain = amplitude > 1 ? 1 / amplitude : 1;
     return in * gain;
 }
+
+} // namespace safety_limiter

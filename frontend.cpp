@@ -38,10 +38,10 @@ int main(int argc, char* argv[])
     sf_readf_float(soundFile, audio, frames);
     sf_close(soundFile);
 
-    std::vector<std::unique_ptr<SafetyLimiter>> limiters;
+    std::vector<std::unique_ptr<safety_limiter::SafetyLimiter>> limiters;
 
     for (int i = 0; i < channels; i++) {
-        limiters.push_back(std::make_unique<SafetyLimiter>(sampleRate));
+        limiters.push_back(std::make_unique<safety_limiter::SafetyLimiter>(sampleRate));
     }
     for (int i = 0; i < frames; i++) {
         for (int j = 0; j < channels; j++) {

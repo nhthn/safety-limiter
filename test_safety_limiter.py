@@ -95,6 +95,7 @@ class TestLimiter:
     def test_python_matches_c(self):
         """An amplified signal put through both C and Python limiters returns identical
         results."""
+        import matplotlib.pyplot as plt
         sample_rate = 48000.0
         frequency = 440
         signal = sine_wave(frequency, sample_rate=sample_rate)
@@ -102,9 +103,13 @@ class TestLimiter:
 
         python_out = apply_limiter(signal, sample_rate=sample_rate)["out"]
 
-        soundfile.write("in.wav", signal, int(sample_rate))
+        soundfile.write("in.wav", signal, int(sample_rate), subtype="FLOAT")
         subprocess.run(["./safety_limiter", "in.wav", "out.wav"], check=True)
         c_out, sample_rate_2 = soundfile.read("out.wav")
         assert sample_rate == sample_rate_2
 
-        np.testing.assert_allclose(python_out, c_out)
+        plt.plot(python_out)
+        plt.plot(c_out)
+        plt.show()
+
+        np.testing.assert_allclose(python_out, c_out, atol=1e-6, rtol=0)

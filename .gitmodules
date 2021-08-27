@@ -1,0 +1,4 @@
+[submodule "third_party/tclap"]
+	path = third_party/tclap
+	url = https://github.com/mirror/tclap.git
+	branch = 1.4

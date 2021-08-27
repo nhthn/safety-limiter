@@ -5,25 +5,44 @@
 
 #include <sndfile.h>
 
+#include "tclap/CmdLine.h"
+
 #include "safety_limiter.hpp"
 
 int main(int argc, char* argv[])
 {
-    if (argc < 3) {
-        std::cerr << "Usage: safety_limiter <in file> <out wav> [-a <amplify>]" << std::endl;
-        exit(1);
-    }
+    std::string inFileName;
+    std::string outFileName;
+    float amplify;
 
-    const char* inFileName = argv[1];
-    const char* outFileName = argv[2];
-    float amplify = 1;
-    if (argc >= 5 && (std::string(argv[3]) == "--amplify" || std::string(argv[3]) == "-a")) {
-        amplify = std::pow(10, std::stof(argv[4]) / 20);
+    try {
+        TCLAP::CmdLine cmd("safety-limiter frontend", ' ', "0.0.1");
+
+        TCLAP::UnlabeledValueArg<std::string> inFileArg("inFile", "Input sound file", true, "", "string");
+        cmd.add(inFileArg);
+
+        TCLAP::UnlabeledValueArg<std::string> outFileArg("outFile", "Output WAV file", true, "", "string");
+        cmd.add(outFileArg);
+
+        TCLAP::ValueArg<std::string> amplifyArg("a", "amplify", "Amplification in dB", false, "0", "float");
+        cmd.add(amplifyArg);
+
+        cmd.parse(argc, argv);
+
+        inFileName = inFileArg.getValue();
+        outFileName = outFileArg.getValue();
+        amplify = std::pow(10, std::stof(amplifyArg.getValue()) / 20);
+    } catch (TCLAP::ArgException e) {
+        std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+        exit(1);
+    } catch (std::invalid_argument e) {
+        std::cerr << "error: invalid float string specified for --amplify" << std::endl;
+        exit(1);
     }
 
     SF_INFO sfInfo;
     sfInfo.format = 0;
-    auto soundFile = sf_open(inFileName, SFM_READ, &sfInfo);
+    auto soundFile = sf_open(inFileName.c_str(), SFM_READ, &sfInfo);
 
     if (soundFile == nullptr) {
         std::cerr << "Audio loading failed: " << sf_strerror(soundFile);
@@ -56,7 +75,7 @@ int main(int argc, char* argv[])
     sfInfo2.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
     sfInfo2.sections = 1;
     sfInfo2.seekable = 0;
-    auto soundFile2 = sf_open(outFileName, SFM_WRITE, &sfInfo2);
+    auto soundFile2 = sf_open(outFileName.c_str(), SFM_WRITE, &sfInfo2);
     if (soundFile2 == nullptr) {
         std::cerr << "Audio saving failed: " << sf_strerror(soundFile2);
         exit(1);

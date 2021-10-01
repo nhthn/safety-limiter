@@ -56,6 +56,7 @@ public:
     void setHoldTime(float holdTime);
 
     float process(float in);
+    float processSidechain(float in, float sidechain);
 
 private:
     const float m_sampleRate;
@@ -88,7 +89,12 @@ void SafetyLimiter::setHoldTime(float holdTime)
 
 float SafetyLimiter::process(float in)
 {
-    float signalInstantaneousAmplitude = std::abs(sanitize(in));
+    return processSidechain(in, in);
+}
+
+float SafetyLimiter::processSidechain(float in, float sidechain)
+{
+    float signalInstantaneousAmplitude = std::abs(sanitize(sidechain));
     float amplitudeFromFollower;
     if (m_holdTimer > 0) {
         amplitudeFromFollower = m_lastAmplitude;

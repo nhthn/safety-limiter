@@ -9,6 +9,17 @@ This is a project to design an audio limiter with the following properties:
 - Header-only C++14 in a single file, `safety_limiter.hpp`.
 - Public domain.
 
-The following are the responsibility of the user:
+Limitations and tips:
 
-- "True peak" limiting. Use 4x oversampling outside the limiter for that.
+- DC removal should be done prior to using this plugin.
+- Some pumping effects are audible if the limiter is pushed hard.
+- Use 4x oversampling outside the limiter for true peak limiting.
+
+### Running tests
+
+Only works on Linux for now.
+
+```
+make
+pytest test_safety_limiter.py
+```
